@@ -1,5 +1,6 @@
 const cookieParser = require('cookie-parser');
 const morgan = require("morgan");
+const {AllRoutes} = require("./routes/router");
 module.exports = class Application{
     #express = require('express');
     #app = this.#express();
@@ -39,22 +40,22 @@ module.exports = class Application{
     }
 
     createRoute(){
-
+        this.#app.use(AllRoutes);
     }
 
     errorHandler(){
         this.#app.use((req, res, next)=>{
             return res.status(404).json({
-                status: 404,
+                statusCode: 404,
                 message: "Address was not found"
             });
         });
 
         this.#app.use((err, req, res, next)=>{
-            const status = err?.status || 500;
+            const statusCode = err?.status || 500;
             const message = err?.message || "Internal Server Error";
-            return res.status(status).json({
-                status: status,
+            return res.status(statusCode).json({
+                statusCode: statusCode,
                 message: message
             })
         })
