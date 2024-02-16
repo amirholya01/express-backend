@@ -1,5 +1,6 @@
 const cookieParser = require('cookie-parser');
 const morgan = require("morgan");
+const createError = require("http-errors");
 const {AllRoutes} = require("./routes/router");
 module.exports = class Application{
     #express = require('express');
@@ -37,6 +38,11 @@ module.exports = class Application{
         mongoose.connect(DB_HOST)
             .then(() => console.log("Connecting to MongoDB was successfully"))
             .catch(err => console.log(`Connecting to MongoDB was failed ---- ${err}`));
+
+        process.on("SIGINT", async () => {
+            await mongoose.connection.close();
+            process.exit(0);
+        })
     }
 
     createRoute(){
@@ -44,14 +50,16 @@ module.exports = class Application{
     }
 
     errorHandler(){
-        this.#app.use((req, res, next)=>{
+        this.#app.use((req, res, next) => {
             return res.status(404).json({
-                statusCode: 404,
-                message: "Address was not found"
-            });
-        });
+                status : 404,
+                success : false,
+                message : "The page or address  was not found"
+            })
+        })
 
         this.#app.use((err, req, res, next)=>{
+
             const statusCode = err?.status || 500;
             const message = err?.message || "Internal Server Error";
             return res.status(statusCode).json({
